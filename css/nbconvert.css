@@ -4,10 +4,10 @@
 
 div.notebook {
     position: relative;
-    #font-size: 0.75em;
-    #border: 3px dashed;
-    #padding: 10px;
-    #margin-bottom:15px
+    font-size: 1em;
+    border: 0px dashed;
+    padding: 10px;
+    margin-bottom:15px
 }
 
 div.notebook label.github-last-update {
