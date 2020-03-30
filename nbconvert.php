@@ -15,14 +15,16 @@ function nbconvert_handler($atts) {
   return $nb_output;
 }
 
-function nbconvert_get_most_recent_git_change_for_file_from_api($url) {
+
+
+function nbconvert_get_sha($url) {
 
   $url_list = explode('/', $url);
 
-  $owner = $url_list[3];
-  $repo = $url_list[4];
-  $branch = $url_list[6];
-  $path = implode("/", array_slice($url_list, 7));
+  $owner = $url_list[1];
+  $repo = $url_list[2];
+  $branch = $url_list[4];
+  $path = implode("/", array_slice($url_list, 5));
 
   $request_url = 'https://api.github.com/repos/'.$owner.'/'.$repo.'/commits/'.$branch.'?path='. $path.'&page=1';
 
@@ -34,60 +36,42 @@ function nbconvert_get_most_recent_git_change_for_file_from_api($url) {
     )
   );
 
-  
+
   $res = file_get_contents($request_url, FALSE, stream_context_create($context_params));
 
-  $datetime = json_decode($res, true)['commit']['committer']['date'];
+  $sha = json_decode($res, true)['sha'];
 
-  $max_datetime = strtotime($datetime);
-  $max_datetime_f = date('d/m/Y H:i:s', $max_datetime);
-
-  return $max_datetime_f;
+  return $sha;
 }
-
-/*
-function get_most_recent_git_change_for_file($url) {
-  
-  $url_list = explode('/', $url);
-  $url_list[5] = 'blame';
-  $new_url = implode("/", $url_list);
-  //Load the HTML page
-  $html = file_get_contents($new_url);
-  
-  //Create a new DOM document
-  $dom = new DOMDocument;
-  libxml_use_internal_errors(true);
-  $dom->loadHTML($html);
-  
-  // Get all time-ago tags
-  $time_agos = $dom->getElementsByTagName('time-ago');
-
-  $mostRecent= 0;
-  foreach($time_agos as $time_ago){
-    $datetime = $time_ago->getAttribute('datetime');
-    $curDate = strtotime($datetime);
-    if ($curDate > $mostRecent) {
-       $mostRecent = $curDate;
-    }
-  }
-
-  $max_date = date('d/m/Y H:i:s', $mostRecent);
-  return $max_date;
-  
-}
-*/
 
 function nbconvert_function($atts) {
   //process plugin
+
   extract(shortcode_atts(array(
         'url' => "",
      ), $atts));
 
+
   $clean_url = preg_replace('#^https?://#', '', rtrim($url,'/'));
-  $html = file_get_contents("https://nbviewer.jupyter.org/url/" . $clean_url);
+
+  // get the latest sha
+  $sha = nbconvert_get_sha($clean_url);
+
+  $url_list = explode('/', $clean_url);
+
+  $owner = $url_list[1];
+  $repo = $url_list[2];
+  $branch = $url_list[4];
+  $path = implode("/", array_slice($url_list, 5));
+
+  // build the url with the latest sha
+  $nbviewer_url = 'https://nbviewer.jupyter.org/github/'.$owner.'/'.$repo.'/blob/'.$sha.'/'.$path;
+
+  $html = file_get_contents($nbviewer_url);
+
   $nb_output = nbconvert_getHTMLByID('notebook-container', $html);
 
-  $last_update_date_time = nbconvert_get_most_recent_git_change_for_file_from_api($url);
+  //$last_update_date_time = nbconvert_get_most_recent_git_change_for_file_from_api($url);
 
   $converted_nb = '<div class="notebook">
     <div class="nbconvert-labels">
@@ -115,6 +99,8 @@ function nbconvert_innerHTML(DOMNode $elm) {
   return $innerHTML;
 }
 
+
+
 function nbconvert_getHTMLByID($id, $html) {
     $dom = new DOMDocument;
     libxml_use_internal_errors(true);
@@ -127,8 +113,10 @@ function nbconvert_getHTMLByID($id, $html) {
     return FALSE;
 }
 
+
 function nbconvert_enqueue_style() {
 	wp_enqueue_style( 'NbConvert', plugins_url( '/css/nbconvert.css', __FILE__ ));
 }
+
 add_action( 'wp_enqueue_scripts', 'nbconvert_enqueue_style' );
 add_shortcode("nbconvert", "nbconvert_handler");
