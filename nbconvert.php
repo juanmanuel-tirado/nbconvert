@@ -71,13 +71,11 @@ function nbconvert_function($atts) {
 
   $nb_output = nbconvert_getHTMLByID('notebook-container', $html);
 
-  //$last_update_date_time = nbconvert_get_most_recent_git_change_for_file_from_api($url);
-
   $converted_nb = '<div class="notebook">
     <div class="nbconvert-labels">
-      <label class="github-link">
+      <!--<label class="github-link">
         <a href="'.$url.'" target="_blank">Check it out on github</a>
-      </label>
+      </label>-->
       <label class="github-link">
         <a href="'.$nbviewer_url.'" target="_blank">Check it out on NBViewer</a>
       </label>
