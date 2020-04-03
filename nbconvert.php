@@ -130,5 +130,51 @@ function nbconvert_getHTMLByID($id, $html) {
 function nbconvert_enqueue_style() {
 	wp_enqueue_style( 'NbConvert', plugins_url( '/css/nbconvert.css', __FILE__ ));
 }
+
+
 add_action( 'wp_enqueue_scripts', 'nbconvert_enqueue_style' );
 add_shortcode("nbconvert", "nbconvert_handler");
+
+// Prepare code to use Mathjax and plotly
+// taken from https://eng.aurelienpierre.com/2018/05/make-jupyter-notebooks-easy-to-blog-in-wordpress/
+
+wp_register_script('plotly', "//cdn.plot.ly/plotly-latest.min.js", array(), null, true);
+wp_register_script( 'mathjax', "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
+ 
+function load_maths( $content) {
+    if (strpos($content, '$') !== false || strpos($content, '[latex]') !== false) {
+        wp_enqueue_script( 'plotly' );
+        wp_enqueue_script( 'mathjax' );
+    }
+    
+    return $content;
+}
+ 
+add_filter( 'the_content', 'load_maths' );
+ 
+function my_custom_js() {
+    echo "<script type='text/x-mathjax-config'>
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ['$','$'], ['[latex]', '[/latex]']],
+            displayMath: [ ['$$','$$'] ],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        // Center justify equations in code and markdown cells. Elsewhere
+        // we use CSS to left justify single line equations in code cells.
+        displayAlign: 'center',
+        'HTML-CSS': {
+            styles: {'.MathJax_Display': {'margin': 0}},
+            linebreaks: { automatic: true },
+        extensions: ['handle-floats.js'],
+        availableFonts: ['STIX','TeX'],
+            preferredFont: 'STIX',
+        webFont:'STIX-Web'
+        },
+    });
+    </script>";
+}
+ 
+// Add hook for front-end <head></head>
+add_action('wp_head', 'my_custom_js');
