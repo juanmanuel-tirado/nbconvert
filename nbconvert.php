@@ -8,6 +8,52 @@
    License: MIT
    */
 
+   // Prepare code to use Mathjax and plotly
+   // taken from https://eng.aurelienpierre.com/2018/05/make-jupyter-notebooks-easy-to-blog-in-wordpress/
+
+   wp_register_script('plotly', "//cdn.plot.ly/plotly-latest.min.js", array(), null, true);
+   wp_register_script( 'mathjax', "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
+
+   function load_maths( $content) {
+       if (strpos($content, '$') !== false || strpos($content, '[latex]') !== false) {
+           wp_enqueue_script( 'plotly' );
+           wp_enqueue_script( 'mathjax' );
+       }
+
+       return $content;
+   }
+
+   add_filter( 'the_content', 'load_maths' );
+
+   function my_custom_js() {
+       echo "<script type='text/x-mathjax-config'>
+       MathJax.Hub.Config({
+           tex2jax: {
+               inlineMath: [ ['$','$'], ['[latex]', '[/latex]']],
+               displayMath: [ ['$$','$$'] ],
+               processEscapes: true,
+               processEnvironments: true
+           },
+           // Center justify equations in code and markdown cells. Elsewhere
+           // we use CSS to left justify single line equations in code cells.
+           displayAlign: 'center',
+           'HTML-CSS': {
+               styles: {'.MathJax_Display': {'margin': 0}},
+               linebreaks: { automatic: true },
+           extensions: ['handle-floats.js'],
+           availableFonts: ['STIX','TeX'],
+               preferredFont: 'STIX',
+           webFont:'STIX-Web'
+           },
+       });
+       </script>";
+   }
+
+   // Add hook for front-end <head></head>
+   add_action('wp_head', 'my_custom_js');
+
+// ---
+
 function nbconvert_handler($atts) {
   //run function that actually does the work of the plugin
   $nb_output = nbconvert_function($atts);
@@ -34,7 +80,7 @@ function nbconvert_get_most_recent_git_change_for_file_from_api($url) {
     )
   );
 
-  
+
   $res = file_get_contents($request_url, FALSE, stream_context_create($context_params));
 
   $datetime = json_decode($res, true)['commit']['committer']['date'];
@@ -47,18 +93,18 @@ function nbconvert_get_most_recent_git_change_for_file_from_api($url) {
 
 /*
 function get_most_recent_git_change_for_file($url) {
-  
+
   $url_list = explode('/', $url);
   $url_list[5] = 'blame';
   $new_url = implode("/", $url_list);
   //Load the HTML page
   $html = file_get_contents($new_url);
-  
+
   //Create a new DOM document
   $dom = new DOMDocument;
   libxml_use_internal_errors(true);
   $dom->loadHTML($html);
-  
+
   // Get all time-ago tags
   $time_agos = $dom->getElementsByTagName('time-ago');
 
@@ -73,7 +119,7 @@ function get_most_recent_git_change_for_file($url) {
 
   $max_date = date('d/m/Y H:i:s', $mostRecent);
   return $max_date;
-  
+
 }
 */
 
@@ -134,47 +180,3 @@ function nbconvert_enqueue_style() {
 
 add_action( 'wp_enqueue_scripts', 'nbconvert_enqueue_style' );
 add_shortcode("nbconvert", "nbconvert_handler");
-
-// Prepare code to use Mathjax and plotly
-// taken from https://eng.aurelienpierre.com/2018/05/make-jupyter-notebooks-easy-to-blog-in-wordpress/
-
-wp_register_script('plotly', "//cdn.plot.ly/plotly-latest.min.js", array(), null, true);
-wp_register_script( 'mathjax', "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
- 
-function load_maths( $content) {
-    if (strpos($content, '$') !== false || strpos($content, '[latex]') !== false) {
-        wp_enqueue_script( 'plotly' );
-        wp_enqueue_script( 'mathjax' );
-    }
-    
-    return $content;
-}
- 
-add_filter( 'the_content', 'load_maths' );
- 
-function my_custom_js() {
-    echo "<script type='text/x-mathjax-config'>
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ['$','$'], ['[latex]', '[/latex]']],
-            displayMath: [ ['$$','$$'] ],
-            processEscapes: true,
-            processEnvironments: true
-        },
-        // Center justify equations in code and markdown cells. Elsewhere
-        // we use CSS to left justify single line equations in code cells.
-        displayAlign: 'center',
-        'HTML-CSS': {
-            styles: {'.MathJax_Display': {'margin': 0}},
-            linebreaks: { automatic: true },
-        extensions: ['handle-floats.js'],
-        availableFonts: ['STIX','TeX'],
-            preferredFont: 'STIX',
-        webFont:'STIX-Web'
-        },
-    });
-    </script>";
-}
- 
-// Add hook for front-end <head></head>
-add_action('wp_head', 'my_custom_js');
