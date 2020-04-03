@@ -12,7 +12,8 @@
    // taken from https://eng.aurelienpierre.com/2018/05/make-jupyter-notebooks-easy-to-blog-in-wordpress/
 
    wp_register_script('plotly', "//cdn.plot.ly/plotly-latest.min.js", array(), null, true);
-   wp_register_script( 'mathjax', "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
+   
+   wp_register_script( 'mathjax', "//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
 
    function load_maths( $content) {
        if (strpos($content, '$') !== false || strpos($content, '[latex]') !== false) {
