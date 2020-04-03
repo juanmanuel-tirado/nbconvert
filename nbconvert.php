@@ -177,6 +177,9 @@ function nbconvert_enqueue_style() {
 	wp_enqueue_style( 'NbConvert', plugins_url( '/css/nbconvert.css', __FILE__ ));
 }
 
+// required scripts
+wp_enqueue_script( 'plotly' );
+wp_enqueue_script( 'mathjax' );
 
 add_action( 'wp_enqueue_scripts', 'nbconvert_enqueue_style' );
 add_shortcode("nbconvert", "nbconvert_handler");
