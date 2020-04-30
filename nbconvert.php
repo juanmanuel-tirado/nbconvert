@@ -12,7 +12,7 @@
    // taken from https://eng.aurelienpierre.com/2018/05/make-jupyter-notebooks-easy-to-blog-in-wordpress/
 
    wp_register_script('plotly', "//cdn.plot.ly/plotly-latest.min.js", array(), null, true);
-   
+
    wp_register_script( 'mathjax', "//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML", array(), null, true);
 
    function load_maths( $content) {
@@ -134,13 +134,14 @@ function nbconvert_function($atts) {
   $html = file_get_contents("https://nbviewer.jupyter.org/url/" . $clean_url);
   $nb_output = nbconvert_getHTMLByID('notebook-container', $html);
 
-  $last_update_date_time = nbconvert_get_most_recent_git_change_for_file_from_api($url);
+  // Forget about the date
+  //$last_update_date_time = nbconvert_get_most_recent_git_change_for_file_from_api($url);
 
   $converted_nb = '<div class="notebook">
     <div class="nbconvert-labels">
       <label class="github-link">
         <a href="'.$url.'" target="_blank">Check it out on github</a>
-        <label class="github-last-update"> Last updated: '.$last_update_date_time.'</label>
+        <!--<label class="github-last-update"> Last updated: '.$last_update_date_time.'</label>-->
       </label>
       </div>
     <div class="nbconvert">'.$nb_output.'
